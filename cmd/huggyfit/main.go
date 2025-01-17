@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/lentz92/huggyfit/internal/calculator"
-	"github.com/lentz92/huggyfit/internal/models"
+	"github.com/Lentz92/huggyfit/internal/calculator"
+	"github.com/Lentz92/huggyfit/internal/models"
 )
 
 func main() {
