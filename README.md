@@ -23,14 +23,14 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 If you have Go installed on your system, you can install HuggyFit directly using:
 
 ```bash
-go install github.com/lentz92/huggyfit/cmd/huggyfit@latest
+go install github.com/Lentz92/huggyfit/cmd/huggyfit@latest
 ```
 
 ### Option 2: Building from Source
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/lentz92/huggyfit.git
+git clone https://github.com/Lentz92/huggyfit.git
 cd huggyfit
 ```
 
