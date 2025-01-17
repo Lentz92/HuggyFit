@@ -143,22 +143,6 @@ huggyfit -model Qwen/Qwen2.5-0.5B -verbose
 - int8 (or q8): 8-bit integer quantization
 - int4 (or q4): 4-bit integer quantization
 
-## Examples
-
-1. Check basic model requirements:
-```bash
-huggyfit -model facebook/opt-350m
-```
-
-2. Use 4-bit quantization:
-```bash
-huggyfit -model facebook/opt-350m -dtype q4
-```
-
-3. Get detailed model information:
-```bash
-huggyfit -model facebook/opt-350m -verbose
-```
 
 ## Help
 
