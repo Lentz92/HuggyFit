@@ -2,7 +2,6 @@
 
 HuggyFit is a command-line tool that helps you determine the GPU memory requirements for running HuggingFace models. It provides estimation of memory usage considering different quantization methods and system overhead.
 
-
 ## Features
 
 - 🧮 GPU memory requirement calculations
@@ -23,14 +22,49 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 If you have Go installed on your system, you can install HuggyFit directly using:
 
 ```bash
-go install github.com/Lentz92/huggyfit/cmd/huggyfit@latest
+go install github.com/lentz92/huggyfit/cmd/huggyfit@latest
 ```
+
+After installation, you'll need to ensure the Go binary directory is in your system's PATH:
+
+#### Linux/macOS
+
+The default Go binary location is `~/go/bin`. Add it to your PATH based on your shell:
+
+For Bash (add to `~/.bashrc` or `~/.bash_profile`):
+```bash
+export PATH=$PATH:~/go/bin
+```
+
+For Zsh (add to `~/.zshrc`):
+```zsh
+export PATH=$PATH:~/go/bin
+```
+
+For Fish (add to `~/.config/fish/config.fish`):
+```fish
+set -gx PATH $PATH ~/go/bin
+```
+
+After adding the path, reload your shell configuration:
+- Bash: `source ~/.bashrc` or `source ~/.bash_profile`
+- Zsh: `source ~/.zshrc`
+- Fish: `source ~/.config/fish/config.fish`
+
+#### Windows
+
+1. The default Go binary location is `%USERPROFILE%\go\bin`
+2. Add to PATH:
+   - Open System Properties > Advanced > Environment Variables
+   - Under "User variables", edit PATH
+   - Add `%USERPROFILE%\go\bin`
+   - Click OK and restart your terminal
 
 ### Option 2: Building from Source
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Lentz92/huggyfit.git
+git clone https://github.com/lentz92/huggyfit.git
 cd huggyfit
 ```
 
