@@ -4,8 +4,10 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 
 ## Features
 
-- 🧮 GPU memory requirement calculations
+- 🧮 Accurate GPU memory requirement calculations
 - 📊 Support for different quantization types (FP16, INT8, INT4)
+- 💾 KV cache calculations with fallback estimation
+- 👥 Multi-user memory estimation support
 - 🔍 Detailed model information from HuggingFace
 - 💻 Cross-platform support (Linux, macOS, Windows)
 - 🎯 System overhead consideration for real-world compatibility
@@ -122,20 +124,38 @@ move huggyfit.exe C:\Users\<YourUsername>\AppData\Local\Programs\huggyfit
 ### Basic Usage
 
 ```bash
+# Basic memory calculation
 huggyfit -model Qwen/Qwen2.5-0.5B
+
+# Calculate memory for multiple concurrent users
+huggyfit -model Qwen/Qwen2.5-0.5B -users 4
+
+# Specify custom context length
+huggyfit -model Qwen/Qwen2.5-0.5B -context 8192
+
+# Combine multiple options
+huggyfit -model Qwen/Qwen2.5-0.5B -users 2 -context 8192 -dtype q4 -verbose
 ```
 
-### Specify Quantization Type
+### Memory Calculation Options
 
 ```bash
-huggyfit -model Qwen/Qwen2.5-0.5B -dtype q4
-```
+# Use estimation for KV cache (faster, less accurate)
+huggyfit -model Qwen/Qwen2.5-0.5B -estimate-kv
 
-### Show Detailed Information
-
-```bash
+# Show detailed memory breakdown and model information
 huggyfit -model Qwen/Qwen2.5-0.5B -verbose
 ```
+
+### Command-Line Options
+
+- `-model`: HuggingFace model ID (required)
+- `-users`: Number of concurrent users (default: 1)
+- `-context`: Context length per user (default: 4096)
+- `-dtype`: Data type for model loading (default: float16)
+- `-estimate-kv`: Use estimation for KV cache calculation
+- `-verbose`: Show detailed model and memory information
+- `-help`: Show help message
 
 ### Supported Data Types
 
