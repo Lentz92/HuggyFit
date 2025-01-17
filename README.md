@@ -22,14 +22,39 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 If you have Go installed on your system, you can install HuggyFit directly using:
 
 ```bash
-go install github.com/lentz92/huggyfit/cmd/huggyfit@latest
+go install github.com/Lentz92/huggyfit/cmd/huggyfit@latest
 ```
 
-After installation, you'll need to ensure the Go binary directory is in your system's PATH:
+After installation, you'll need to ensure the Go binary directory is in your system's PATH. The steps depend on your shell:
 
-#### Linux/macOS
+#### Fish Shell (Recommended)
+1. Create the Fish config directory and file (if they don't exist):
+```bash
+mkdir -p ~/.config/fish
+```
 
-The default Go binary location is `~/go/bin`. Add it to your PATH based on your shell:
+2. Open the config file in your preferred editor:
+```bash
+nano ~/.config/fish/config.fish
+```
+
+3. Add this line to the file:
+```fish
+set -gx PATH $PATH ~/go/bin
+```
+
+4. Save the file:
+   - If using nano: Press Ctrl+X, then Y, then Enter
+   - If using vim: Press Esc, type `:wq`, then Enter
+
+5. Apply the changes to your current session:
+```bash
+source ~/.config/fish/config.fish
+```
+
+Now `huggyfit` will be available in your PATH permanently, even after system restarts.
+
+#### Other Shells
 
 For Bash (add to `~/.bashrc` or `~/.bash_profile`):
 ```bash
@@ -41,15 +66,9 @@ For Zsh (add to `~/.zshrc`):
 export PATH=$PATH:~/go/bin
 ```
 
-For Fish (add to `~/.config/fish/config.fish`):
-```fish
-set -gx PATH $PATH ~/go/bin
-```
-
 After adding the path, reload your shell configuration:
 - Bash: `source ~/.bashrc` or `source ~/.bash_profile`
 - Zsh: `source ~/.zshrc`
-- Fish: `source ~/.config/fish/config.fish`
 
 #### Windows
 
