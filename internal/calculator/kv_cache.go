@@ -79,10 +79,12 @@ func CalculateKVCache(params KVCacheParams) (float64, error) {
 	// KV Cache formula:
 	// Memory = 2 * num_layers * seq_len * (hidden_size/num_attn_heads * num_kv_heads) * 2 * bytes_per_param * num_users
 	kvSize := float64(2 * params.Config.NumHiddenLayers * params.ContextLength *
-		(params.Config.HiddenSize / params.Config.NumAttentionHeads * params.Config.NumKeyValueHeads) * 2)
+		(params.Config.HiddenSize / params.Config.NumAttentionHeads) *
+		params.Config.NumKeyValueHeads * 2)
 
 	// Convert to GB
-	memoryGB := (kvSize * bytes) / (1024 * 1024 * 1024)
+	const BytesPerGB = 1024 * 1024 * 1024
+	memoryGB := (kvSize * bytes) / BytesPerGB
 
 	// Apply per-user scaling
 	totalMemoryGB := memoryGB * float64(params.Users)
