@@ -48,13 +48,20 @@ func (m Model) renderTabs() string {
 func (m Model) renderMemoryDetails() string {
 	var s strings.Builder
 
-	// Model identification
-	s.WriteString("Model: " + m.modelInfo.ModelID + "\n")
+	// Model identification and configuration
+	s.WriteString("Model: " + m.modelInfo.ModelID + "  ")
+	s.WriteString("Users: " + valueStyle.Render(fmt.Sprint(m.users)) + "  ")
+	s.WriteString("Context: " + valueStyle.Render(formatContextLength(m.contextLen)) + "\n\n")
 
-	// Configuration section
-	s.WriteString("\nConfiguration:\n")
-	s.WriteString("- Users: " + valueStyle.Render(fmt.Sprint(m.users)) + "\n")
-	s.WriteString("- Context Length: " + valueStyle.Render(formatContextLength(m.contextLen)) + "\n")
+	// Header
+	headers := []string{"Type", "Base", "KV Cache", "Total", "Per User"}
+	s.WriteString(fmt.Sprintf("%-8s  %-12s  %-12s  %-12s  %-12s\n",
+		headerStyle.Render(headers[0]),
+		headerStyle.Render(headers[1]),
+		headerStyle.Render(headers[2]),
+		headerStyle.Render(headers[3]),
+		headerStyle.Render(headers[4])))
+	s.WriteString(strings.Repeat("-", 62) + "\n")
 
 	// Memory calculations for each data type
 	for _, dtype := range dataTypes {
@@ -65,19 +72,17 @@ func (m Model) renderMemoryDetails() string {
 }
 
 func (m Model) renderMemoryCalculation(dtype calculator.DataType) string {
-	var s strings.Builder
-
 	baseMemory, _ := calculator.CalculateGPUMemory(m.modelInfo.ParametersB, dtype)
 	kvMemory := m.calculateKVCache(dtype)
 	totalMemory := baseMemory + kvMemory
+	perUser := kvMemory / float64(m.users)
 
-	s.WriteString("\n" + string(dtype) + ":\n")
-	s.WriteString("  Base: " + valueStyle.Render(fmt.Sprintf("%.2f GB", baseMemory)) + "\n")
-	s.WriteString("  KV Cache: " + valueStyle.Render(fmt.Sprintf("%.2f GB", kvMemory)) + "\n")
-	s.WriteString("  Total: " + valueStyle.Render(fmt.Sprintf("%.2f GB", totalMemory)) + "\n")
-	s.WriteString("  Per User: " + valueStyle.Render(fmt.Sprintf("%.2f GB", kvMemory/float64(m.users))) + "\n")
-
-	return s.String()
+	return fmt.Sprintf("%-8s  %s  %s  %s  %s\n",
+		string(dtype),
+		valueStyle.Render(fmt.Sprintf("%6.2f GB", baseMemory)),
+		valueStyle.Render(fmt.Sprintf("%6.2f GB", kvMemory)),
+		valueStyle.Render(fmt.Sprintf("%6.2f GB", totalMemory)),
+		valueStyle.Render(fmt.Sprintf("%6.2f GB", perUser)))
 }
 
 func (m Model) renderModelInfo() string {

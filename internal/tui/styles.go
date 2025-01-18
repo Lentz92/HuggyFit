@@ -69,6 +69,11 @@ var (
 	// Value styling for numbers and measurements
 	valueStyle = lipgloss.NewStyle().
 			Foreground(highlightColor)
+
+	// Table header styling
+	headerStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(textColor)
 )
 
 // spinnerStyle returns a new spinner style
