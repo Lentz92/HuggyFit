@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Lentz92/huggyfit/internal/calculator"
 	"github.com/Lentz92/huggyfit/internal/models"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -37,6 +38,13 @@ var (
 			Background(lipgloss.Color("#2D2D2D")).
 			Padding(0, 1).
 			MarginBottom(1)
+
+	selectedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#74B2FF")).
+			Bold(true)
+
+	contextLengths = []int{2048, 4096, 8192, 16384, 32768}
+	userCounts     = []int{1, 2, 4, 8, 16, 32}
 )
 
 type Model struct {
@@ -49,6 +57,44 @@ type Model struct {
 	textInput  textinput.Model
 	searchMode bool
 	quitting   bool
+	users      int
+	contextLen int
+}
+
+func getNextContextLength(current int) int {
+	for i, length := range contextLengths {
+		if current <= length {
+			if i+1 < len(contextLengths) {
+				return contextLengths[i+1]
+			}
+			return contextLengths[0]
+		}
+	}
+	return contextLengths[0]
+}
+
+func getNextUserCount(current int) int {
+	for i, count := range userCounts {
+		if current <= count {
+			if i+1 < len(userCounts) {
+				return userCounts[i+1]
+			}
+			return userCounts[0]
+		}
+	}
+	return userCounts[0]
+}
+
+func getPrevUserCount(current int) int {
+	for i := len(userCounts) - 1; i >= 0; i-- {
+		if current >= userCounts[i] {
+			if i > 0 {
+				return userCounts[i-1]
+			}
+			return userCounts[len(userCounts)-1]
+		}
+	}
+	return userCounts[len(userCounts)-1]
 }
 
 func InitialModel() Model {
@@ -63,9 +109,11 @@ func InitialModel() Model {
 	ti.Prompt = "🔍 "
 
 	return Model{
-		spinner:   s,
-		loading:   true,
-		textInput: ti,
+		spinner:    s,
+		loading:    true,
+		textInput:  ti,
+		users:      userCounts[0],     // Start with 1 user
+		contextLen: contextLengths[1], // Start with 4096
 	}
 }
 
@@ -108,16 +156,36 @@ type errMsg error
 type modelListMsg []string
 type modelInfoMsg *models.ModelInfo
 
+func (m Model) calculateKVCache(dtype calculator.DataType) float64 {
+	if m.modelInfo == nil {
+		return 0
+	}
+
+	config, err := calculator.FetchModelConfig(m.modelInfo.ModelID)
+	if err == nil {
+		kvParams := calculator.KVCacheParams{
+			Users:         m.users,
+			ContextLength: m.contextLen,
+			DataType:      dtype,
+			Config:        config,
+		}
+		memory, err := calculator.CalculateKVCache(kvParams)
+		if err == nil {
+			return memory
+		}
+	}
+
+	return calculator.EstimateKVCache(m.modelInfo.ParametersB, m.users, m.contextLen, dtype)
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// Handle ctrl+c globally for emergency exit
 		if msg.String() == "ctrl+c" {
 			m.quitting = true
 			return m, tea.Quit
 		}
 
-		// Handle other keys based on mode
 		if m.searchMode {
 			switch msg.String() {
 			case "esc":
@@ -126,17 +194,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.loading = true
-				m.searchMode = false // Exit search mode automatically
-				m.textInput.Blur()   // Blur the input
+				m.searchMode = false
+				m.textInput.Blur()
 				return m, performSearch(m.textInput.Value())
 			default:
-				// Let all other keys go to the text input when in search mode
 				var cmd tea.Cmd
 				m.textInput, cmd = m.textInput.Update(msg)
 				return m, cmd
 			}
 		} else {
-			// Normal mode key handling
 			switch msg.String() {
 			case "q":
 				m.quitting = true
@@ -168,6 +234,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor >= len(m.modelIDs) {
 					m.cursor = len(m.modelIDs) - 1
 				}
+			case "+":
+				if m.modelInfo != nil {
+					m.users = getNextUserCount(m.users)
+				}
+			case "-":
+				if m.modelInfo != nil {
+					m.users = getPrevUserCount(m.users)
+				}
+			case "c":
+				if m.modelInfo != nil {
+					m.contextLen = getNextContextLength(m.contextLen)
+				}
 			}
 		}
 
@@ -176,13 +254,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.modelIDs = []string(msg)
 		m.modelInfo = nil
 		m.cursor = 0
-		m.err = nil // Clear any previous errors
+		m.err = nil
 		return m, nil
 
 	case modelInfoMsg:
 		m.loading = false
 		m.modelInfo = msg
-		m.err = nil // Clear any previous errors
+		m.err = nil
 		return m, nil
 
 	case errMsg:
@@ -207,7 +285,6 @@ func (m Model) View() string {
 	var s strings.Builder
 	s.WriteString(titleStyle.Render("🤗 HuggyFit - GPU Memory Calculator") + "\n\n")
 
-	// Show error as a banner if present
 	if m.err != nil {
 		s.WriteString(errorStyle.Render(fmt.Sprintf("⚠️  Error: %v", m.err)) + "\n")
 	}
@@ -226,7 +303,35 @@ func (m Model) View() string {
 		m.renderModelDetails(),
 	)
 	s.WriteString(mainDisplay + "\n")
-	s.WriteString("\nNavigate: ↑/↓ or j/k • Select: Enter • Search: / • Quit: q")
+
+	// Help text with user counts and context length options
+	s.WriteString("\nNavigate: ↑/↓ or j/k • Select: Enter • Search: / • Quit: q\n")
+
+	// User count options
+	s.WriteString("Users (+/-): ")
+	for i, count := range userCounts {
+		if i > 0 {
+			s.WriteString(" | ")
+		}
+		if count == m.users {
+			s.WriteString(selectedStyle.Render(fmt.Sprintf("%d", count)))
+		} else {
+			s.WriteString(fmt.Sprintf("%d", count))
+		}
+	}
+
+	// Context length options
+	s.WriteString("\nContext (c): ")
+	for i, length := range contextLengths {
+		if i > 0 {
+			s.WriteString(" | ")
+		}
+		if length == m.contextLen {
+			s.WriteString(selectedStyle.Render(fmt.Sprintf("%dk", length/1024)))
+		} else {
+			s.WriteString(fmt.Sprintf("%dk", length/1024))
+		}
+	}
 
 	return s.String()
 }
@@ -238,7 +343,6 @@ func (m Model) renderModelList() string {
 		return listStyle.Render("No models found")
 	}
 
-	// Calculate pagination
 	const itemsPerPage = 10
 	currentPage := m.cursor / itemsPerPage
 	start := currentPage * itemsPerPage
@@ -247,41 +351,31 @@ func (m Model) renderModelList() string {
 		end = len(m.modelIDs)
 	}
 
-	// Add header
 	s.WriteString("Available Models\n")
-	s.WriteString(strings.Repeat("─", 38)) // Separator line
+	s.WriteString(strings.Repeat("─", 38))
 	s.WriteString("\n")
 
-	// Format each model entry for current page
 	for i := start; i < end; i++ {
 		cursor := " "
 		if m.cursor == i {
 			cursor = ">"
 		}
 
-		// Format model ID to fit within the list
 		modelID := m.modelIDs[i]
 		if len(modelID) > 35 {
 			modelID = modelID[:32] + "..."
 		}
 
-		// Add padding to align items
 		paddedModel := fmt.Sprintf("%-35s", modelID)
 
-		// Style the selected item
 		if m.cursor == i {
-			s.WriteString(fmt.Sprintf("%s %s\n", cursor,
-				lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#74B2FF")).
-					Bold(true).
-					Render(paddedModel)))
+			s.WriteString(fmt.Sprintf("%s %s\n", cursor, selectedStyle.Render(paddedModel)))
 		} else {
 			s.WriteString(fmt.Sprintf("%s %s\n", cursor, paddedModel))
 		}
 	}
 
-	// Add footer with pagination info
-	s.WriteString(strings.Repeat("─", 38)) // Separator line
+	s.WriteString(strings.Repeat("─", 38))
 	s.WriteString("\n")
 	currentPageNum := (start / itemsPerPage) + 1
 	totalPages := (len(m.modelIDs) + itemsPerPage - 1) / itemsPerPage
@@ -305,11 +399,20 @@ func (m Model) renderModelDetails() string {
 	s.WriteString(fmt.Sprintf("Downloads: %d\n", m.modelInfo.Downloads))
 	s.WriteString(fmt.Sprintf("Likes: %d\n", m.modelInfo.Likes))
 
-	s.WriteString("\nEstimated GPU Memory Requirements:\n")
-	params := m.modelInfo.ParametersB
-	s.WriteString(fmt.Sprintf("float16: %.2f GB\n", params*2.0*1.18))
-	s.WriteString(fmt.Sprintf("int8: %.2f GB\n", params*1.0*1.18))
-	s.WriteString(fmt.Sprintf("int4: %.2f GB\n", params*0.5*1.18))
+	s.WriteString(fmt.Sprintf("\nMemory Requirements (users: %d, context: %dk):\n",
+		m.users, m.contextLen/1024))
+
+	dtypes := []calculator.DataType{calculator.Float16, calculator.Int8, calculator.Int4}
+	for _, dtype := range dtypes {
+		baseMemory, _ := calculator.CalculateGPUMemory(m.modelInfo.ParametersB, dtype)
+		kvMemory := m.calculateKVCache(dtype)
+		totalMemory := baseMemory + kvMemory
+
+		s.WriteString(fmt.Sprintf("\n%s:\n", dtype))
+		s.WriteString(fmt.Sprintf("  Base: %.2f GB\n", baseMemory))
+		s.WriteString(fmt.Sprintf("  KV Cache: %.2f GB\n", kvMemory))
+		s.WriteString(fmt.Sprintf("  Total: %.2f GB\n", totalMemory))
+	}
 
 	return detailStyle.Render(s.String())
 }
