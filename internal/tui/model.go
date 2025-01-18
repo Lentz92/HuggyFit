@@ -52,7 +52,7 @@ func InitialModel() Model {
 	ti := textinput.New()
 	ti.Placeholder = "Search models..."
 	ti.CharLimit = 156
-	ti.Width = maxSearchWidth
+	ti.Width = 30 // Default width that will be updated based on terminal size
 	ti.Prompt = "🔍 "
 
 	return Model{

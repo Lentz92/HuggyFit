@@ -17,6 +17,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// Update text input width based on terminal size
+		m.textInput.Width = m.width / 2
 		return m, nil
 	case modelListMsg:
 		return m.handleModelList(msg)
@@ -197,7 +199,9 @@ func (m Model) handleSpinnerTick(msg spinner.TickMsg) (tea.Model, tea.Cmd) {
 // enterSearchMode prepares the model for search input
 func (m Model) enterSearchMode() (tea.Model, tea.Cmd) {
 	m.searchMode = true
+	m.textInput.Reset()
 	m.textInput.Focus()
+	m.textInput.Width = m.width / 2 // Ensure width is set
 	m.cacheOperationPending = false
 	return m, textinput.Blink
 }
