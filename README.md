@@ -29,7 +29,7 @@ go install github.com/Lentz92/huggyfit/cmd/huggyfit@latest
 
 After installation, you'll need to ensure the Go binary directory is in your system's PATH. The steps depend on your shell:
 
-#### Fish Shell (Recommended)
+#### Fish Shell
 1. Create the Fish config directory and file (if they don't exist):
 ```bash
 mkdir -p ~/.config/fish
