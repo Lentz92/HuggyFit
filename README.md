@@ -11,6 +11,7 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 - 🔍 Detailed model information from HuggingFace
 - 💻 Cross-platform support (Linux, macOS, Windows)
 - 🎯 System overhead consideration for real-world compatibility
+- 🖥️ Interactive Terminal UI for browsing and analyzing models
 
 ## Requirements
 
@@ -21,10 +22,14 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 
 ### Option 1: Using Go Install
 
-If you have Go installed on your system, you can install HuggyFit directly using:
+If you have Go installed on your system, you can install both HuggyFit CLI and TUI directly using:
 
 ```bash
+# Install CLI tool
 go install github.com/Lentz92/huggyfit/cmd/huggyfit@latest
+
+# Install TUI (Terminal User Interface)
+go install github.com/Lentz92/huggyfit/cmd/huggyfitui@latest
 ```
 
 After installation, you'll need to ensure the Go binary directory is in your system's PATH. The steps depend on your shell:
@@ -54,7 +59,7 @@ set -gx PATH $PATH ~/go/bin
 source ~/.config/fish/config.fish
 ```
 
-Now `huggyfit` will be available in your PATH permanently, even after system restarts.
+Now both `huggyfit` and `huggyfitui` will be available in your PATH permanently, even after system restarts.
 
 #### Other Shells
 
@@ -89,20 +94,22 @@ git clone https://github.com/lentz92/huggyfit.git
 cd huggyfit
 ```
 
-2. Build the binary:
+2. Build the binaries:
 ```bash
 # Linux/macOS
 go build -o huggyfit ./cmd/huggyfit
+go build -o huggyfitui ./cmd/huggyfitui
 
 # Windows (PowerShell)
 go build -o huggyfit.exe .\cmd\huggyfit
+go build -o huggyfitui.exe .\cmd\huggyfitui
 ```
 
-3. (Optional) Move the binary to your system's PATH:
+3. (Optional) Move the binaries to your system's PATH:
 
 Linux/macOS:
 ```bash
-sudo mv huggyfit /usr/local/bin/
+sudo mv huggyfit huggyfitui /usr/local/bin/
 ```
 
 Windows:
@@ -110,9 +117,9 @@ Windows:
 ```powershell
 mkdir C:\Users\<YourUsername>\AppData\Local\Programs\huggyfit
 ```
-2. Move the binary:
+2. Move the binaries:
 ```powershell
-move huggyfit.exe C:\Users\<YourUsername>\AppData\Local\Programs\huggyfit
+move huggyfit.exe huggyfitui.exe C:\Users\<YourUsername>\AppData\Local\Programs\huggyfit
 ```
 3. Add to PATH:
    - Open System Properties > Advanced > Environment Variables
@@ -121,7 +128,23 @@ move huggyfit.exe C:\Users\<YourUsername>\AppData\Local\Programs\huggyfit
 
 ## Usage
 
-### Basic Usage
+### Terminal User Interface (TUI)
+
+Launch the interactive TUI with:
+```bash
+huggyfitui
+```
+
+The TUI provides an interactive interface for:
+- Browsing and searching HuggingFace models
+- Viewing detailed model information
+- Calculating memory requirements with different parameters
+- Real-time updates of memory calculations
+- Easy parameter adjustments using keyboard shortcuts
+
+### Command Line Interface (CLI)
+
+#### Basic Usage
 
 ```bash
 # Basic memory calculation
@@ -137,7 +160,7 @@ huggyfit -model Qwen/Qwen2.5-0.5B -context 8192
 huggyfit -model Qwen/Qwen2.5-0.5B -users 2 -context 8192 -dtype q4 -verbose
 ```
 
-### Memory Calculation Options
+#### Memory Calculation Options
 
 ```bash
 # Use estimation for KV cache (faster, less accurate)
@@ -147,7 +170,7 @@ huggyfit -model Qwen/Qwen2.5-0.5B -estimate-kv
 huggyfit -model Qwen/Qwen2.5-0.5B -verbose
 ```
 
-### Command-Line Options
+#### Command-Line Options
 
 - `-model`: HuggingFace model ID (required)
 - `-users`: Number of concurrent users (default: 1)
@@ -168,7 +191,11 @@ huggyfit -model Qwen/Qwen2.5-0.5B -verbose
 
 For a full list of options:
 ```bash
+# CLI help
 huggyfit -help
+
+# TUI help
+huggyfitui -help
 ```
 
 ## Credit
