@@ -1,9 +1,10 @@
 # HuggyFit
 
-HuggyFit is a command-line tool that helps you determine the GPU memory requirements for running HuggingFace models. It provides estimation of memory usage considering different quantization methods and system overhead.
+HuggyFit is a tool suite that helps you determine the GPU memory requirements for running HuggingFace models. It consists of both a command-line interface (CLI) and an interactive Terminal User Interface (TUI), providing estimation of memory usage considering different quantization methods and system overhead.
 
 ## Features
 
+Core Features:
 - 🧮 Accurate GPU memory requirement calculations
 - 📊 Support for different quantization types (FP16, INT8, INT4)
 - 💾 KV cache calculations with fallback estimation
@@ -11,7 +12,19 @@ HuggyFit is a command-line tool that helps you determine the GPU memory requirem
 - 🔍 Detailed model information from HuggingFace
 - 💻 Cross-platform support (Linux, macOS, Windows)
 - 🎯 System overhead consideration for real-world compatibility
-- 🖥️ Interactive Terminal UI for browsing and analyzing models
+
+Terminal UI Features:
+- 🖥️ Interactive model browser and search
+- 📱 Real-time memory calculation updates
+- ⌨️ Keyboard shortcuts for quick parameter adjustments
+- 📊 Dynamic visualization of memory requirements
+- 🔄 Live parameter modifications
+
+Command Line Features:
+- 🚀 Quick single-command calculations
+- 📝 Detailed memory breakdown reports
+- 🔧 Flexible parameter configuration
+- 📋 Batch processing capabilities
 
 ## Requirements
 
